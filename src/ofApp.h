@@ -21,8 +21,11 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
+		bool bPlayerCam = false;
 
+		ofCamera *theCam;
 		ofEasyCam cam;
+		ofCamera player;
 
 		ofMesh pcMesh;
 		

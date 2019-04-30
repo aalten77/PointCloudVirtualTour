@@ -7,6 +7,12 @@ void ofApp::setup(){
 	ofSetVerticalSync(true);
 
 	cam.setDistance(500);
+	theCam = &cam;
+
+	player.setPosition(0, -500, 0);
+	player.lookAt(glm::vec3(0, 0, 0));
+	player.setNearClip(.1);
+	player.setFov(65.5);
 
 	//load pcd data into a ofMesh
 	ifstream pcdFile;
@@ -32,16 +38,68 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-	cam.begin();
+	theCam->begin();
 
-	pcMesh.drawVertices();
+	//pcMesh.drawVertices();
+	ofSetColor(ofColor::black);
+	for (int i = 0; i < pcMesh.getNumVertices(); i++)
+	{
+		ofDrawSphere(pcMesh.getVertex(i), 1);
+	}
 
-	cam.end();
+	theCam->end();
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+	switch (key) {
+	case OF_KEY_UP:
+		if (bPlayerCam)
+		{
+			player.setPosition(player.getPosition() + glm::vec3(0, 10, 0));
+		}
+		break;
+	case OF_KEY_DOWN:
+		if (bPlayerCam)
+		{
+			player.setPosition(player.getPosition() + glm::vec3(0, -10, 0));
+		}
+		break;
+	case OF_KEY_LEFT:
+		if (bPlayerCam)
+		{
+			player.setPosition(player.getPosition() + glm::vec3(-10, 0, 0));
+		}
+		break;
+	case OF_KEY_RIGHT:
+		if (bPlayerCam)
+		{
+			player.setPosition(player.getPosition() + glm::vec3(10, 0, 0));
+		}
+		break;
+	case 'w':
+		if (bPlayerCam)
+		{
+			player.setPosition(player.getPosition() + glm::vec3(0, 0, 10));
+		}
+		break;
+	case 's':
+		if (bPlayerCam)
+		{
+			player.setPosition(player.getPosition() + glm::vec3(0, 0, -10));
+		}
+		break;
+	case OF_KEY_F1:
+		theCam = &cam;
+		bPlayerCam = false;
+		break;
+	case OF_KEY_F2:
+		theCam = &player;
+		bPlayerCam = true;
+		break;
+	default:
+		break;
+	}
 }
 
 //--------------------------------------------------------------
