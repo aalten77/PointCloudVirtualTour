@@ -6,7 +6,7 @@ void ofApp::setup(){
 	ofEnableDepthTest();
 	ofSetVerticalSync(true);
 
-	cam.setDistance(10);
+	cam.setDistance(20);
 	theCam = &cam;
 
 	player.setPosition(0, -10, 0);
@@ -44,6 +44,7 @@ void ofApp::setup(){
 
 		pcMesh.addColor(ofColor(int(r), int(g), int(b)));
 		//cout << x << " " << y << " " << z << endl;
+		
 	}
 
 }
@@ -59,8 +60,11 @@ void ofApp::draw(){
 
 	//pcMesh.drawVertices();
 	//ofSetColor(ofColor::black);
-
+	glPointSize(5);
+	ofPushMatrix();
+	ofScale(10);
 	pcMesh.drawVertices();
+	ofPopMatrix();
 	/*for (int i = 0; i < pcMesh.getNumVertices(); i+=16)
 	{
 		ofSetColor(pcMesh.getColor(i));
