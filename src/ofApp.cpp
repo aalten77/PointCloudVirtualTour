@@ -6,10 +6,10 @@ void ofApp::setup(){
 	ofEnableDepthTest();
 	ofSetVerticalSync(true);
 
-	cam.setDistance(500);
+	cam.setDistance(10);
 	theCam = &cam;
 
-	player.setPosition(0, -500, 0);
+	player.setPosition(0, -10, 0);
 	player.lookAt(glm::vec3(0, 0, 0));
 	player.setNearClip(.1);
 	player.setFov(65.5);
@@ -17,15 +17,32 @@ void ofApp::setup(){
 	//load pcd data into a ofMesh
 	ifstream pcdFile;
 
-	pcdFile.open("../bin/data/ism_train_lioness_v2.pcd");
+	pcdFile.open("../bin/data/scene1_ascii_v2.pcd");
 	if (!pcdFile) {
 		cout << "Unable to open file" << endl;
 	}
+	else {
+		cout << "Opening file" << endl;
+	}
 	
-	float x, y, z;
-	while (pcdFile >> x >> y >> z) {
+	
+
+	float x, y, z, rgb, distance;
+	//uint32_t rgb;
+	int cameraIndex, segment, label;
+	while (pcdFile >> x >> y >> z >> rgb >> cameraIndex >> distance >> segment >> label) {
+		
 		pcMesh.addVertex(ofPoint(x, y, z));
-		pcMesh.addColor(ofFloatColor(0, 0, 0));
+
+		//bit shift to get rgb vals
+		uint32_t rgbt = 0;
+		memcpy(&rgbt, &rgb, sizeof rgbt);
+		uint8_t r = (rgbt >> 16) & 0x0000ff;
+		uint8_t g = (rgbt >> 8) & 0x0000ff;
+		uint8_t b = (rgbt) & 0x0000ff;
+		//cout << int(r) << " " << int(g) << " " << int(b) << endl;
+
+		pcMesh.addColor(ofColor(int(r), int(g), int(b)));
 		//cout << x << " " << y << " " << z << endl;
 	}
 
@@ -41,11 +58,14 @@ void ofApp::draw(){
 	theCam->begin();
 
 	//pcMesh.drawVertices();
-	ofSetColor(ofColor::black);
-	for (int i = 0; i < pcMesh.getNumVertices(); i++)
+	//ofSetColor(ofColor::black);
+
+	pcMesh.drawVertices();
+	/*for (int i = 0; i < pcMesh.getNumVertices(); i+=16)
 	{
-		ofDrawSphere(pcMesh.getVertex(i), 1);
-	}
+		ofSetColor(pcMesh.getColor(i));
+		ofDrawSphere(pcMesh.getVertex(i), 0.01);
+	}*/
 
 	theCam->end();
 }
