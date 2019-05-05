@@ -1,6 +1,9 @@
 #pragma once
 
 #include "ofMain.h"
+#include <map>
+#include <utility>
+#include <iostream>
 
 class ofApp : public ofBaseApp{
 
@@ -27,6 +30,7 @@ class ofApp : public ofBaseApp{
 		ofEasyCam cam;
 		ofCamera player;
 
+		typedef std::pair<string, ofColor> pair;
 		ofMesh pcMesh;
-		
+		map<int, pair> labelDictionary; //key: label number, value: <label name, color> -- for CMU dataset
 };
