@@ -3,48 +3,50 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	
+	
 	ofEnableDepthTest();
 	ofSetVerticalSync(true);
 
 	cam.setDistance(20);
 	theCam = &cam;
 
-	player.setPosition(0, -10, 0);
+	player.setPosition(0, -20, 0);
 	player.lookAt(glm::vec3(0, 0, 0));
 	player.setNearClip(.1);
 	player.setFov(65.5);
 
 	//load pcd data into a ofMesh
-	ifstream pcdFile;
+	ifstream pcdFiles[4];
 
-	pcdFile.open("../bin/data/scene1_ascii_v2.pcd");
-	if (!pcdFile) {
-		cout << "Unable to open file" << endl;
-	}
-	else {
-		cout << "Opening file" << endl;
-	}
-	
-	
+	//pcdFile.open("../bin/data/scene1_ascii_v2.pcd");
+	//if (!pcdFile) cout << "Unable to open file 1" << endl;
+	//if (!pcdFile2) cout << "Unable to open file 2" << endl;
+	//if (!pcdFile3) cout << "Unable to open file 3" << endl;
+	//if (!pcdFile4) cout << "Unable to open file 4" << endl;
 
-	float x, y, z, rgb, distance;
-	//uint32_t rgb;
-	int cameraIndex, segment, label;
-	while (pcdFile >> x >> y >> z >> rgb >> cameraIndex >> distance >> segment >> label) {
-		
-		pcMesh.addVertex(ofPoint(x, y, z));
+	for (int i = 1; i < 2; i++) {
+		float x, y, z, rgb, distance;
+		//uint32_t rgb;
+		int cameraIndex, segment, label;
 
-		//bit shift to get rgb vals
-		uint32_t rgbt = 0;
-		memcpy(&rgbt, &rgb, sizeof rgbt);
-		uint8_t r = (rgbt >> 16) & 0x0000ff;
-		uint8_t g = (rgbt >> 8) & 0x0000ff;
-		uint8_t b = (rgbt) & 0x0000ff;
-		//cout << int(r) << " " << int(g) << " " << int(b) << endl;
+		ostringstream filename;
+		filename << "../bin/data/scene" << i << "_ascii_v2.pcd";
+		pcdFiles[i].open(filename.str());
 
-		pcMesh.addColor(ofColor(int(r), int(g), int(b)));
-		//cout << x << " " << y << " " << z << endl;
-		
+		while (pcdFiles[i] >> x >> y >> z >> rgb >> cameraIndex >> distance >> segment >> label) {
+
+			pcMesh.addVertex(ofPoint(x, y, z));
+
+			uint32_t rgbt = 0;
+			memcpy(&rgbt, &rgb, sizeof rgbt);
+			uint8_t r = (rgbt >> 16) & 0x0000ff;
+			uint8_t g = (rgbt >> 8) & 0x0000ff;
+			uint8_t b = (rgbt) & 0x0000ff;
+
+			pcMesh.addColor(ofColor(int(r), int(g), int(b)));
+		}
+
 	}
 
 }
@@ -58,18 +60,16 @@ void ofApp::update(){
 void ofApp::draw(){
 	theCam->begin();
 
-	//pcMesh.drawVertices();
-	//ofSetColor(ofColor::black);
+	ofDrawAxis(5);
+	
 	glPointSize(5);
 	ofPushMatrix();
+	ofTranslate(glm::vec3(0, -5, 10));
 	ofScale(10);
+	ofRotateY(90);
+	ofRotateX(-90);
 	pcMesh.drawVertices();
 	ofPopMatrix();
-	/*for (int i = 0; i < pcMesh.getNumVertices(); i+=16)
-	{
-		ofSetColor(pcMesh.getColor(i));
-		ofDrawSphere(pcMesh.getVertex(i), 0.01);
-	}*/
 
 	theCam->end();
 }
