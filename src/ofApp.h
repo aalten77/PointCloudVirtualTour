@@ -1,6 +1,10 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxGui.h"
+#include <map>
+#include <utility>
+#include <iostream>
 
 class ofApp : public ofBaseApp{
 
@@ -27,6 +31,16 @@ class ofApp : public ofBaseApp{
 		ofEasyCam cam;
 		ofCamera player;
 
+		//variables for CMU dataset
+		typedef std::pair<string, ofColor> pair;
 		ofMesh pcMesh;
+		map<int, pair> labelDictionary; //key: label number, value: <label name, color> -- for CMU dataset
 		
+		//variables for office dataset
+		ofMesh officeMesh;
+
+		//ofxGui variables
+		ofxPanel gui;
+
+		ofxToggle toggle;
 };
