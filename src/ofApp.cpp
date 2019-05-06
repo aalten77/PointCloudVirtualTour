@@ -3,19 +3,21 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	
-	
-	ofEnableDepthTest();
 	ofSetVerticalSync(true);
 
 	//use distance of 20 for the office dataset
-	cam.setDistance(200);
+	cam.setDistance(20);
 	theCam = &cam;
 
 	player.setPosition(0, -200, 0);
 	player.lookAt(glm::vec3(0, 0, 0));
 	player.setNearClip(.1);
 	player.setFov(65.5);
+
+	//setup for ofxGui
+	gui.setup();
+	gui.setPosition(ofPoint(10, 10));
+	gui.add(toggle.setup("next", false));
 
 	
 	/****CMU Dataset Oakland****/
@@ -49,67 +51,70 @@ void ofApp::setup(){
 	}
 
 	//**************************************************************
-
+	//**********OFFICE Dataset************
 	//load pcd data into a ofMesh
-	//ifstream pcdFiles[4]; //**** use for scene files ****
+	
+	ifstream officeFile;
+	officeFile.open("../bin/data/scene1_ascii_v2.pcd");
+	if (!officeFile) cout << "Unable to open scene1 dataset" << endl;
 
-	//****use for the scene{i}_ascii_v2.pcd files****
-	//for (int i = 1; i < 2; i++) {
-	//	float x, y, z, rgb, distance;
-	//	//uint32_t rgb;
-	//	int cameraIndex, segment, label;
+	float x, y, z, rgb, distance;
+	int cameraIndex, segment, label;
+	while (officeFile >> x >> y >> z >> rgb >> cameraIndex >> distance >> segment >> label) {
+		officeMesh.addVertex(ofPoint(x, y, z));
 
-	//	ostringstream filename;
-	//	filename << "../bin/data/scene" << i << "_ascii_v2.pcd";
-	//	pcdFiles[i].open(filename.str());
+		uint32_t rgbt = 0;
+		memcpy(&rgbt, &rgb, sizeof rgbt);
+		uint8_t r = (rgbt >> 16) & 0x0000ff;
+		uint8_t g = (rgbt >> 8) & 0x0000ff;
+		uint8_t b = (rgbt) & 0x0000ff;
 
-	//	while (pcdFiles[i] >> x >> y >> z >> rgb >> cameraIndex >> distance >> segment >> label) {
-
-	//		pcMesh.addVertex(ofPoint(x, y, z));
-
-	//		uint32_t rgbt = 0;
-	//		memcpy(&rgbt, &rgb, sizeof rgbt);
-	//		uint8_t r = (rgbt >> 16) & 0x0000ff;
-	//		uint8_t g = (rgbt >> 8) & 0x0000ff;
-	//		uint8_t b = (rgbt) & 0x0000ff;
-
-	//		pcMesh.addColor(ofColor(int(r), int(g), int(b)));
-	//	}
-
-	//}
+		officeMesh.addColor(ofColor(int(r), int(g), int(b))); 
+	}
 
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	
+
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+	ofEnableDepthTest();
+	
+
 	theCam->begin();
 
 	ofDrawAxis(5);
 	
 	glPointSize(3);
 
-	//***use for the CMU datasets ****
-	ofPushMatrix();
-	ofRotateY(180);
-	ofRotateX(-90);
-	pcMesh.drawVertices();
-	ofPopMatrix();
-
-	//***use for the scene datasets****
-	/*ofPushMatrix();
-	ofTranslate(glm::vec3(0, -5, 10));
-	ofScale(10);
-	ofRotateY(90);
-	ofRotateX(-90);
-	pcMesh.drawVertices();
-	ofPopMatrix();*/
+	
+	if (toggle) {
+		//***use for the CMU datasets ****
+		ofPushMatrix();
+		ofRotateY(180);
+		ofRotateX(-90);
+		pcMesh.drawVertices();
+		ofPopMatrix();
+	}
+	else {
+		//***use for the scene datasets****
+		ofPushMatrix();
+		ofTranslate(glm::vec3(0, -5, 10));
+		ofScale(10);
+		ofRotateY(90);
+		ofRotateX(-90);
+		officeMesh.drawVertices();
+		ofPopMatrix();
+	}
 
 	theCam->end();
+
+	
+	ofDisableDepthTest();
+	gui.draw();
 }
 
 //--------------------------------------------------------------
@@ -181,7 +186,12 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-
+	if (toggle) { //reset cam for CMU dataset
+		cam.setDistance(200);
+	}
+	else { //reset cam for office scene dataset
+		cam.setDistance(20);
+	}
 }
 
 //--------------------------------------------------------------
