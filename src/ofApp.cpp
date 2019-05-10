@@ -9,7 +9,7 @@ void ofApp::setup(){
 	cam.setDistance(20);
 	theCam = &cam;
 
-	player.setPosition(0, -200, 0);
+	player.setPosition(-200, 0, 0);
 	player.lookAt(glm::vec3(0, 0, 0));
 	player.setNearClip(.1);
 	player.setFov(65.5);
@@ -123,37 +123,49 @@ void ofApp::keyPressed(int key){
 	case OF_KEY_UP:
 		if (bPlayerCam)
 		{
-			player.setPosition(player.getPosition() + glm::vec3(0, 10, 0));
+			player.setPosition(player.getPosition() + 10 * player.getLookAtDir());
 		}
 		break;
 	case OF_KEY_DOWN:
 		if (bPlayerCam)
 		{
-			player.setPosition(player.getPosition() + glm::vec3(0, -10, 0));
+			player.setPosition(player.getPosition() - 10 * player.getLookAtDir());
 		}
 		break;
 	case OF_KEY_LEFT:
 		if (bPlayerCam)
 		{
-			player.setPosition(player.getPosition() + glm::vec3(-10, 0, 0));
+			player.rotateDeg(5, 0, 1, 0);
 		}
 		break;
 	case OF_KEY_RIGHT:
 		if (bPlayerCam)
 		{
-			player.setPosition(player.getPosition() + glm::vec3(10, 0, 0));
+			player.rotateDeg(-5, 0, 1, 0);
 		}
 		break;
 	case 'w':
 		if (bPlayerCam)
 		{
-			player.setPosition(player.getPosition() + glm::vec3(0, 0, 10));
+			player.setPosition(player.getPosition() + glm::vec3(0, 10, 0));
 		}
 		break;
 	case 's':
 		if (bPlayerCam)
 		{
-			player.setPosition(player.getPosition() + glm::vec3(0, 0, -10));
+			player.setPosition(player.getPosition() + glm::vec3(0, -10, 0));
+		}
+		break;
+	case 'a':
+		if (bPlayerCam)
+		{
+			player.setPosition(player.getPosition() - 10 * player.getSideDir());
+		}
+		break;
+	case 'd':
+		if (bPlayerCam)
+		{
+			player.setPosition(player.getPosition() + 10 * player.getSideDir());
 		}
 		break;
 	case OF_KEY_F1:
