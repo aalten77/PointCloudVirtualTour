@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxGui.h"
+#include "ray.h"
 #include <map>
 #include <utility>
 #include <iostream>
@@ -24,6 +25,7 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+		bool  doPointSelection();
 
 		bool bPlayerCam = false;
 
@@ -38,9 +40,16 @@ class ofApp : public ofBaseApp{
 		
 		//variables for office dataset
 		ofMesh officeMesh;
+		map<int, string> officeDictionary;
 
 		//ofxGui variables
 		ofxPanel gui;
-
 		ofxToggle toggle;
+
+		//point selection variables
+		ofVec3f selectedPoint;
+		ofVec3f intersectPoint;
+		bool bPointSelected;
+		bool bExaminePoint = false;
+		const float selectionRange = 250.0;
 };
