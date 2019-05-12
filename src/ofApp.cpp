@@ -73,6 +73,7 @@ void ofApp::setup(){
 
 	float x, y, z, rgb, distance;
 	int cameraIndex, segment, label;
+	num = 0;
 	while (officeFile >> x >> y >> z >> rgb >> cameraIndex >> distance >> segment >> label) {
 		officeMesh.addVertex(ofPoint(x, y, z));
 
@@ -83,6 +84,9 @@ void ofApp::setup(){
 		uint8_t b = (rgbt) & 0x0000ff;
 
 		officeMesh.addColor(ofColor(int(r), int(g), int(b))); 
+
+		officeVerticesLabels.insert(std::pair<int, int>(num, label));
+		num++;
 	}
 
 }
@@ -101,11 +105,12 @@ void ofApp::draw(){
 
 	ofDrawAxis(5);
 	
-	glPointSize(3);
+	
 
 	
 	if (toggle) {
 		//***use for the CMU datasets ****
+		glPointSize(3);
 		ofPushMatrix();
 		ofRotateY(180);
 		ofRotateX(-90);
@@ -114,12 +119,25 @@ void ofApp::draw(){
 	}
 	else {
 		//***use for the scene datasets****
+		glPointSize(3);
 		ofPushMatrix();
 		ofTranslate(glm::vec3(0, -5, 10));
 		ofScale(10);
 		ofRotateY(90);
 		ofRotateX(-90);
 		officeMesh.drawVertices();
+
+		//highlight selected point's object
+		if (bPointSelected) {
+			glPointSize(7);
+			selectedPoints.drawVertices();
+
+			/*ofSetColor(ofColor::darkGray, 127);
+			ofDrawPlane(selectedPoint.x, selectedPoint.y, selectedPoint.z + 0.18, 0.1, 0.1);*/
+			ofSetColor(ofColor::magenta);
+			ofDrawBitmapString(officeDictionary[officeVerticesLabels[selectedPointIndex]], selectedPoint.x, selectedPoint.y, selectedPoint.z + 0.005);
+		}
+
 		ofPopMatrix();
 	}
 
@@ -226,11 +244,31 @@ void ofApp::mousePressed(int x, int y, int button){
 	//
 	if (cam.getMouseInputEnabled()) return;
 
+	
+	
+
 	//examine points
 	if (bExaminePoint) {
+
+		//clear if there are points in the selectedPoints mesh
+		if (selectedPoints.hasVertices()) {
+			cout << "clearing mesh" << endl;
+			selectedPoints.clear();
+		}
+
+		//start point selection
 		cout << "Looking for a point to select..." << endl;
 		if (doPointSelection()) {
-			cout << selectedPoint << endl;
+			cout << "HIT" << endl;
+
+			//look for points to add to mesh
+			int label = officeVerticesLabels[selectedPointIndex];
+			for (std::map<int, int>::iterator it = officeVerticesLabels.begin(); it != officeVerticesLabels.end(); ++it) {
+				if (it->second == label) {
+					selectedPoints.addVertex(officeMesh.getVertex(it->first));
+					selectedPoints.addColor(ofColor::cyan);
+				}
+			}
 		}
 		else {
 			cout << "MISS" << endl;
@@ -341,6 +379,7 @@ bool ofApp::doPointSelection() {
 			if (i == 0 || curDist < distance) {
 				distance = curDist;
 				selectedPoint = selection[i];
+				selectedPointIndex = i;
 			}
 		}
 	}

@@ -41,6 +41,7 @@ class ofApp : public ofBaseApp{
 		//variables for office dataset
 		ofMesh officeMesh;
 		map<int, string> officeDictionary;
+		map<int, int> officeVerticesLabels;
 
 		//ofxGui variables
 		ofxPanel gui;
@@ -48,8 +49,10 @@ class ofApp : public ofBaseApp{
 
 		//point selection variables
 		ofVec3f selectedPoint;
+		int selectedPointIndex = 0;
 		ofVec3f intersectPoint;
-		bool bPointSelected;
+		bool bPointSelected = false;
 		bool bExaminePoint = false;
 		const float selectionRange = 250.0;
+		ofMesh selectedPoints;
 };
