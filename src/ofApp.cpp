@@ -3,6 +3,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	ofSeedRandom();
 	ofSetVerticalSync(true);
 
 	//use distance of 20 for the office dataset
@@ -62,6 +63,9 @@ void ofApp::setup(){
 	int cameraIndex, segment, label;
 	while (officeFile >> x >> y >> z >> rgb >> cameraIndex >> distance >> segment >> label) {
 		officeMesh.addVertex(ofPoint(x, y, z));
+		officeMesh.velocities.push_back(0);
+		officeMesh.basePos.push_back(ofPoint(x, y, z));
+		officeMesh.resting.push_back(true);
 
 		uint32_t rgbt = 0;
 		memcpy(&rgbt, &rgb, sizeof rgbt);
@@ -76,7 +80,49 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-
+	frameCount += 1;
+	if (frameCount >= 60)
+	{
+		frameCount = 0;
+	}
+	ofPoint newPoint;
+	float minY;
+	if (!toggle)
+	{
+		if (bGravity)
+		{
+			for (int i = 0; i < officeMesh.getVertices().size(); i++)
+			{
+				if (!officeMesh.resting[i])
+				{
+					officeMesh.velocities[i] = max(officeMesh.velocities[i] - g, -terminal);
+					newPoint = officeMesh.getVertex(i) + ofPoint(0, 0, officeMesh.velocities[i]);
+					if (newPoint.z < 0)
+					{
+						newPoint.z = 0;
+						officeMesh.velocities[i] = -officeMesh.velocities[i] - (ofRandom(2) * g);
+						if (ofRandom(100) <= 25)
+						{
+							officeMesh.velocities[i] = 0;
+							officeMesh.resting[i] = true;
+						}
+					}
+					officeMesh.setVertex(i, newPoint);
+				}
+			}
+		}
+		else
+		{
+			for (int i = 0; i < officeMesh.getVertices().size(); i++)
+			{
+				if (officeMesh.getVertex(i).z < officeMesh.basePos[i].z)
+				{
+					minY = min(officeMesh.getVertex(i).z + g, officeMesh.basePos[i].z);
+					officeMesh.setVertex(i, ofPoint(officeMesh.getVertex(i).x, officeMesh.getVertex(i).y, minY));
+				}
+			}
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -148,6 +194,7 @@ void ofApp::keyPressed(int key){
 		if (bPlayerCam)
 		{
 			player.setPosition(player.getPosition() + glm::vec3(0, 10, 0));
+			cout << glm::vec3(0, 10, 0).y << endl;
 		}
 		break;
 	case 's':
@@ -166,6 +213,25 @@ void ofApp::keyPressed(int key){
 		if (bPlayerCam)
 		{
 			player.setPosition(player.getPosition() + 10 * player.getSideDir());
+		}
+		break;
+	case 'g':
+		if (!bGravity)
+		{
+			bGravity = true;
+			for (int i = 0; i < officeMesh.getVertices().size(); i++)
+			{
+				officeMesh.resting[i] = false;
+			}
+		}
+		else
+		{
+			bGravity = false;
+			for (int i = 0; i < officeMesh.getVertices().size(); i++)
+			{
+				officeMesh.velocities[i] = 0;
+				officeMesh.resting[i] = true;
+			}
 		}
 		break;
 	case OF_KEY_F1:

@@ -6,6 +6,13 @@
 #include <utility>
 #include <iostream>
 
+class gravityMesh : public ofMesh {
+public:
+	vector<float> velocities;
+	vector<glm::vec3> basePos;
+	vector<bool> resting;
+};
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -26,6 +33,10 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
 		bool bPlayerCam = false;
+		bool bGravity = false;
+		float g = .02;
+		float terminal = .2;
+		int frameCount = 0;
 
 		ofCamera *theCam;
 		ofEasyCam cam;
@@ -33,11 +44,11 @@ class ofApp : public ofBaseApp{
 
 		//variables for CMU dataset
 		typedef std::pair<string, ofColor> pair;
-		ofMesh pcMesh;
+		gravityMesh pcMesh;
 		map<int, pair> labelDictionary; //key: label number, value: <label name, color> -- for CMU dataset
 		
 		//variables for office dataset
-		ofMesh officeMesh;
+		gravityMesh officeMesh;
 
 		//ofxGui variables
 		ofxPanel gui;
