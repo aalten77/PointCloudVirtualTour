@@ -8,6 +8,8 @@ void ofApp::setup(){
 
 	//use distance of 20 for the office dataset
 	cam.setDistance(20);
+	cam.setNearClip(.1);
+	cam.setFov(65.5);
 	theCam = &cam;
 
 	player.setPosition(-200, 0, 0);
@@ -54,6 +56,17 @@ void ofApp::setup(){
 	//**************************************************************
 	//**********OFFICE Dataset************
 	//load pcd data into a ofMesh
+	//read labels and store in map
+	ifstream officeLabelFile;
+	officeLabelFile.open("../bin/data/scene_labels.txt");
+	if (!officeLabelFile) cout << "Unable to open office labels file" << endl;
+
+	string officelabelname;
+	int num = 0;
+	while (officeLabelFile >> officelabelname) {
+		officeDictionary.insert(std::pair<int, string>(num, officelabelname));
+		num++;
+	}
 	
 	ifstream officeFile;
 	officeFile.open("../bin/data/scene1_ascii_v2.pcd");
@@ -61,6 +74,7 @@ void ofApp::setup(){
 
 	float x, y, z, rgb, distance;
 	int cameraIndex, segment, label;
+	num = 0;
 	while (officeFile >> x >> y >> z >> rgb >> cameraIndex >> distance >> segment >> label) {
 		officeMesh.addVertex(ofPoint(x, y, z));
 		officeMesh.velocities.push_back(0);
@@ -74,17 +88,15 @@ void ofApp::setup(){
 		uint8_t b = (rgbt) & 0x0000ff;
 
 		officeMesh.addColor(ofColor(int(r), int(g), int(b))); 
+
+		officeVerticesLabels.insert(std::pair<int, int>(num, label));
+		num++;
 	}
 
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	frameCount += 1;
-	if (frameCount >= 60)
-	{
-		frameCount = 0;
-	}
 	ofPoint newPoint;
 	float minY;
 	if (!toggle)
@@ -134,11 +146,9 @@ void ofApp::draw(){
 
 	ofDrawAxis(5);
 	
-	glPointSize(3);
-
-	
 	if (toggle) {
 		//***use for the CMU datasets ****
+		glPointSize(3);
 		ofPushMatrix();
 		ofRotateY(180);
 		ofRotateX(-90);
@@ -147,12 +157,25 @@ void ofApp::draw(){
 	}
 	else {
 		//***use for the scene datasets****
+		glPointSize(3);
 		ofPushMatrix();
 		ofTranslate(glm::vec3(0, -5, 10));
 		ofScale(10);
 		ofRotateY(90);
 		ofRotateX(-90);
 		officeMesh.drawVertices();
+
+		//highlight selected point's object
+		if (bPointSelected) {
+			glPointSize(7);
+			selectedPoints.drawVertices();
+
+			/*ofSetColor(ofColor::darkGray, 127);
+			ofDrawPlane(selectedPoint.x, selectedPoint.y, selectedPoint.z + 0.18, 0.1, 0.1);*/
+			ofSetColor(ofColor::magenta);
+			ofDrawBitmapString(officeDictionary[officeVerticesLabels[selectedPointIndex]], selectedPoint.x, selectedPoint.y, selectedPoint.z + 0.005);
+		}
+
 		ofPopMatrix();
 	}
 
@@ -194,7 +217,6 @@ void ofApp::keyPressed(int key){
 		if (bPlayerCam)
 		{
 			player.setPosition(player.getPosition() + glm::vec3(0, 10, 0));
-			cout << glm::vec3(0, 10, 0).y << endl;
 		}
 		break;
 	case 's':
@@ -242,6 +264,17 @@ void ofApp::keyPressed(int key){
 		theCam = &player;
 		bPlayerCam = true;
 		break;
+	case OF_KEY_F3: //toggle for point selection examine mode
+		bExaminePoint = !bExaminePoint;
+		if (bExaminePoint) {
+			cout << "Examine mode on" << endl;
+			cam.disableMouseInput();
+		}
+		else {
+			cout << "Examine mode off" << endl;
+			cam.enableMouseInput();
+		}
+		break;
 	default:
 		break;
 	}
@@ -264,11 +297,48 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
+	// if moving camera, don't allow mouse interaction
+	//
+	if (cam.getMouseInputEnabled()) return;
+
+	//examine points
+	if (bExaminePoint) {
+
+		//clear if there are points in the selectedPoints mesh
+		if (selectedPoints.hasVertices()) {
+			cout << "clearing mesh" << endl;
+			selectedPoints.clear();
+		}
+
+		//start point selection
+		cout << "Looking for a point to select..." << endl;
+		if (doPointSelection()) {
+			cout << "HIT" << endl;
+
+			//look for points to add to mesh
+			int label = officeVerticesLabels[selectedPointIndex];
+			for (std::map<int, int>::iterator it = officeVerticesLabels.begin(); it != officeVerticesLabels.end(); ++it) {
+				if (it->second == label) {
+					selectedPoints.addVertex(officeMesh.getVertex(it->first));
+					selectedPoints.addColor(ofColor::cyan);
+				}
+			}
+		}
+		else {
+			cout << "MISS" << endl;
+		}
+		return;
+	}
+
 	if (toggle) { //reset cam for CMU dataset
+		cam.disableMouseInput();
 		cam.setDistance(200);
+		cam.enableMouseInput();
 	}
 	else { //reset cam for office scene dataset
+		cam.disableMouseInput();
 		cam.setDistance(20);
+		cam.enableMouseInput();
 	}
 }
 
@@ -300,4 +370,71 @@ void ofApp::gotMessage(ofMessage msg){
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
+}
+
+//
+//  ScreenSpace Selection Method: 
+//  This is not the octree method, but will give you an idea of comparison
+//  of speed between octree and screenspace.
+//
+//  Select Target Point on Terrain by comparing distance of mouse to 
+//  vertice points projected onto screenspace.
+//  if a point is selected, return true, else return false;
+//
+bool ofApp::doPointSelection() {
+
+	ofMesh mesh;
+	if (toggle) { //get mesh for CMU dataset
+		mesh = pcMesh;
+	}
+	else { //get mesh for office scene dataset
+		mesh = officeMesh;
+	}
+
+	int n = mesh.getNumVertices();
+	float nearestDistance = 0;
+	int nearestIndex = 0;
+
+	bPointSelected = false;
+
+	ofVec2f mouse(mouseX, mouseY);
+	vector<ofVec3f> selection;
+
+	// We check through the mesh vertices to see which ones
+	// are "close" to the mouse point in screen space.  If we find 
+	// points that are close, we store them in a vector (dynamic array)
+	//
+	for (int i = 0; i < n; i++) {
+		ofVec3f vert = mesh.getVertex(i);
+		ofVec3f posScreen = cam.worldToScreen(vert);
+		float distance = posScreen.distance(mouse);
+		//cout << "Vert: " << vert << " Distance: " << distance << endl;
+		if (distance < selectionRange) {
+			selection.push_back(vert);
+			bPointSelected = true;
+		}
+
+	}
+
+	//  if we found selected points, we need to determine which
+	//  one is closest to the eye (camera). That one is our selected target.
+	//
+	if (bPointSelected) {
+		float distance = 0;
+		for (int i = 0; i < selection.size(); i++) {
+			ofVec3f point = cam.worldToCamera(selection[i]);
+
+			// In camera space, the camera is at (0,0,0), so distance from 
+			// the camera is simply the length of the point vector
+			//
+			float curDist = point.length();
+
+			if (i == 0 || curDist < distance) {
+				distance = curDist;
+				selectedPoint = selection[i];
+				selectedPointIndex = i;
+			}
+		}
+	}
+	return bPointSelected;
 }

@@ -2,16 +2,11 @@
 
 #include "ofMain.h"
 #include "ofxGui.h"
+#include "gravityMesh.h"
+#include "ray.h"
 #include <map>
 #include <utility>
 #include <iostream>
-
-class gravityMesh : public ofMesh {
-public:
-	vector<float> velocities;
-	vector<glm::vec3> basePos;
-	vector<bool> resting;
-};
 
 class ofApp : public ofBaseApp{
 
@@ -31,12 +26,12 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+		bool doPointSelection();
 
 		bool bPlayerCam = false;
 		bool bGravity = false;
 		float g = .02;
 		float terminal = .2;
-		int frameCount = 0;
 
 		ofCamera *theCam;
 		ofEasyCam cam;
@@ -49,9 +44,19 @@ class ofApp : public ofBaseApp{
 		
 		//variables for office dataset
 		gravityMesh officeMesh;
+		map<int, string> officeDictionary;
+		map<int, int> officeVerticesLabels;
 
 		//ofxGui variables
 		ofxPanel gui;
-
 		ofxToggle toggle;
+
+		//point selection variables
+		ofVec3f selectedPoint;
+		int selectedPointIndex = 0;
+		ofVec3f intersectPoint;
+		bool bPointSelected = false;
+		bool bExaminePoint = false;
+		const float selectionRange = 250.0;
+		ofMesh selectedPoints;
 };
