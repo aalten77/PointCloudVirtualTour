@@ -30,7 +30,7 @@ class ofApp : public ofBaseApp{
 
 		bool bPlayerCam = false;
 		bool bGravity = false;
-		float g = .02;
+		float g = .01;
 		float terminal = .2;
 
 		ofCamera *theCam;
@@ -57,6 +57,6 @@ class ofApp : public ofBaseApp{
 		ofVec3f intersectPoint;
 		bool bPointSelected = false;
 		bool bExaminePoint = false;
-		const float selectionRange = 250.0;
+		const float selectionRange = 200.0;
 		ofMesh selectedPoints;
 };

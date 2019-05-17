@@ -12,7 +12,7 @@ void ofApp::setup(){
 	cam.setFov(65.5);
 	theCam = &cam;
 
-	player.setPosition(-200, 0, 0);
+	player.setPosition(-100, 0, 0);
 	player.lookAt(glm::vec3(0, 0, 0));
 	player.setNearClip(.1);
 	player.setFov(65.5);
@@ -112,7 +112,7 @@ void ofApp::update(){
 					if (newPoint.z < 0)
 					{
 						newPoint.z = 0;
-						officeMesh.velocities[i] = -officeMesh.velocities[i] - (ofRandom(2) * g);
+						officeMesh.velocities[i] = (-officeMesh.velocities[i] * .6) + ((ofRandom(.3) * -officeMesh.velocities[i]));
 						if (ofRandom(100) <= 25)
 						{
 							officeMesh.velocities[i] = 0;
@@ -129,7 +129,7 @@ void ofApp::update(){
 			{
 				if (officeMesh.getVertex(i).z < officeMesh.basePos[i].z)
 				{
-					minY = min(officeMesh.getVertex(i).z + g, officeMesh.basePos[i].z);
+					minY = min(officeMesh.getVertex(i).z + (2 * g), officeMesh.basePos[i].z);
 					officeMesh.setVertex(i, ofPoint(officeMesh.getVertex(i).x, officeMesh.getVertex(i).y, minY));
 				}
 			}
