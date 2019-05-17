@@ -3,6 +3,10 @@
 
 #include <math.h>
 
+/**
+* Vector3 class that does 3D vector operations.
+* @author Kevin Smith
+*/
 class Vector3 {
 public:
 	Vector3() { };

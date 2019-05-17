@@ -5,6 +5,9 @@
 
 #include "ofMain.h"
 
+/**
+* @author Jason Do
+*/
 class gravityMesh : public ofMesh {
 public:
 	vector<float> velocities;
