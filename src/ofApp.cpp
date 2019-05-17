@@ -2,6 +2,9 @@
 #include <fstream>
 
 //--------------------------------------------------------------
+// Initial camera setup done here. Also, parsing of point cloud data format and storing into OfMesh data structure done here. 
+// @author Ai-Linh Alten
+// @author Jason Do
 void ofApp::setup(){
 	ofSeedRandom();
 	ofSetVerticalSync(true);
@@ -96,6 +99,8 @@ void ofApp::setup(){
 }
 
 //--------------------------------------------------------------
+// Animation for falling points using gravity. 
+// @author Jason Do
 void ofApp::update(){
 	ofPoint newPoint;
 	float minY;
@@ -138,6 +143,8 @@ void ofApp::update(){
 }
 
 //--------------------------------------------------------------
+// Draw points in scene after rotation and translation to center. Highlight selected points in Examine mode and draw label string in front of highlighted points. 
+// @author Ai-Linh Alten
 void ofApp::draw(){
 	ofEnableDepthTest();
 	
@@ -187,6 +194,8 @@ void ofApp::draw(){
 }
 
 //--------------------------------------------------------------
+// @author Jason Do
+// @author Ai-Linh Alten
 void ofApp::keyPressed(int key){
 	switch (key) {
 	case OF_KEY_UP:
@@ -237,7 +246,7 @@ void ofApp::keyPressed(int key){
 			player.setPosition(player.getPosition() + 10 * player.getSideDir());
 		}
 		break;
-	case 'g':
+	case 'g': //gravity animation
 		if (!bGravity)
 		{
 			bGravity = true;
@@ -256,11 +265,11 @@ void ofApp::keyPressed(int key){
 			}
 		}
 		break;
-	case OF_KEY_F1:
+	case OF_KEY_F1: //EasyCam
 		theCam = &cam;
 		bPlayerCam = false;
 		break;
-	case OF_KEY_F2:
+	case OF_KEY_F2: //first-person cam
 		theCam = &player;
 		bPlayerCam = true;
 		break;
@@ -296,6 +305,12 @@ void ofApp::mouseDragged(int x, int y, int button){
 }
 
 //--------------------------------------------------------------
+/**
+* mousePress allows for interaction of the OFEasyCam, does point selection to highlight objects in scene during Examine mode (F3 toggle)
+* and also checks toggle in ofxGUI for the "Next" button to change the scene between office and CMU dataset
+* 
+* @author Ai-Linh Alten
+*/
 void ofApp::mousePressed(int x, int y, int button){
 	// if moving camera, don't allow mouse interaction
 	//
@@ -380,6 +395,8 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 //  Select Target Point on Terrain by comparing distance of mouse to 
 //  vertice points projected onto screenspace.
 //  if a point is selected, return true, else return false;
+//
+// @author Kevin Smith
 //
 bool ofApp::doPointSelection() {
 

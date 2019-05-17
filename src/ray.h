@@ -11,6 +11,7 @@
  *      "An Efficient and Robust Ray-Box Intersection Algorithm"
  *      Journal of graphics tools, 10(1):49-54, 2005
  *
+ * @author Kevin Smith
  */
 
 class Ray {
